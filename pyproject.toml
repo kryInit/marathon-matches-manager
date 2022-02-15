@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "marathon-matches-manager"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["kryInit <kryinit@gmail.com>"]
 

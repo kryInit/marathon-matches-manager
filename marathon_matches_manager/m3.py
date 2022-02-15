@@ -5,6 +5,7 @@ Overview:
 Usage:
   m3 new <name>
   m3 vis
+  m3 hi
 
 Options:
   -h, --help                        : show this help message
@@ -34,7 +35,8 @@ def main():
         generate_template(args['<name>'])
     elif args['vis']:
         app.run(host='0.0.0.0', port=5000)
-
+    elif args['hi']:
+        print("hello!")
 
 
 if __name__ == "__main__":
