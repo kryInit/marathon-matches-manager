@@ -2,7 +2,7 @@ import logging
 import os
 from typing import List
 
-from .const import CONST
+from marathon_matches_manager.const import CONST
 
 
 def generate_template(name: str) -> None:

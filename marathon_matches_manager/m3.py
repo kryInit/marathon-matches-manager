@@ -17,7 +17,7 @@ import logging
 from docopt import docopt
 from flask import Flask, render_template
 
-from .generate_template import generate_template
+from marathon_matches_manager.generate_template import generate_template
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s]: %(message)s")
