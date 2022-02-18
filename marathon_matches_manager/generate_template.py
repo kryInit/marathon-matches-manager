@@ -1,6 +1,13 @@
+import dataclasses
 import logging
 import os
+import re
+from collections import OrderedDict
 from typing import List
+
+import Levenshtein
+import requests
+from bs4 import BeautifulSoup
 
 from marathon_matches_manager.const import CONST
 
@@ -19,19 +26,114 @@ def generate_template(name: str) -> None:
 
     os.makedirs(name)
 
-    predicted_contests_name = predict_related_contests(name)
-    for pcn in predicted_contests_name:
-        is_for_the_contest = input(f"\nthis template will be used for '{pcn}'?  [y/n]: ").strip() == "y"
-        print()
+    atcoder_contests = _get_all_atcoder_marathon_contests()
+    predicted_contests = _predict_related_contests(name, atcoder_contests)
+
+    print()
+    for contest in predicted_contests:
+        replay = input(f"this template will be used for '{contest.name}'?  [y/n/s(skip)]: ").strip()
+        if replay == "s" or replay == "skip":
+            break
+        elif replay == "y" or replay == "yes":
+            for_this_contest = contest
+            break
+    print()
 
     logger.info("creation successful!")
 
 
-def predict_related_contests(name) -> List[str]:
-    # name, url, period, in progress,
+@dataclasses.dataclass
+class ContestInfo:
+    name: str
+    sub_name: str
+    start_time: str
+    period: str
+    rated: str
+
+    def __str__(self):
+        return (
+            f"start time   : {self.start_time}\n"
+            f"contest name : {self.name}\n"
+            f"    sub name : {self.sub_name}\n"
+            f"period       : {self.period}\n"
+            f"rated        : {self.rated}"
+        )
+
+
+def _get_all_atcoder_marathon_contests(overseas: bool = False) -> List[ContestInfo]:
     logger = logging.getLogger(__name__)
-    logger.debug(CONST.AtCoderContestsURL)
+    logger.debug(CONST.ATCODER_PAST_MARATHON_CONTESTS_URL)
 
-    return ["AtCoder Heuristic Contest 001"]
+    contests = []
+
+    url = CONST.ATCODER_PAST_MARATHON_CONTESTS_URL + "&lang=" + ("en" if overseas else "ja")
+    content = requests.get(url)
+    soup = BeautifulSoup(content.text, "html.parser")
+    tables = soup.find_all("tbody")
+
+    detected_contest_count = 0
+    recognized_contest_count = 0
+
+    for table in tables:
+        for contest in table.find_all("tr"):
+            detected_contest_count += 1
+            raw_contest_info = contest.find_all("td")
+            if len(raw_contest_info) == 4:
+                raw_contest_info[0] = raw_contest_info[0].find("time")
+                raw_contest_info[1] = raw_contest_info[1].find("a")
+
+                if all(raw_contest_info):
+                    start_time, contest_name, period, rated = map(lambda x: x.text, raw_contest_info)
+
+                    sub_contest_name = raw_contest_info[1].get("href")
+                    sub_contest_name = "" if sub_contest_name is None else sub_contest_name.lstrip("/contests/")
+
+                    recognized_contest_count += 1
+                    contests.append(
+                        ContestInfo(
+                            name=contest_name,
+                            sub_name=sub_contest_name,
+                            start_time=start_time,
+                            period=period,
+                            rated=rated,
+                        )
+                    )
+
+    logger.debug(f"scraping contests. recognized / detected: {recognized_contest_count} / {detected_contest_count}")
+
+    return contests
 
 
+def _predict_related_contests(raw_contest_name: str, atcoder_contests: List[ContestInfo]) -> List[ContestInfo]:
+    # name, url, period, in progress,
+
+    def reduction_contest_name(name: str) -> str:
+        return re.sub("[\W_]", "", name).lower().replace("ahc", "atcoderheuristiccontest")
+
+    def calc_edit_distance(s1: str, s2: str) -> float:
+        d1 = Levenshtein.distance(s1, s2) / max(len(s1), len(s2))
+        d2 = 1.0 - Levenshtein.jaro_winkler(s1, s2)
+        return (d1 + d2) / 2
+
+    contest_name = reduction_contest_name(raw_contest_name)
+
+    edit_dists = list(
+        map(
+            lambda x: atcoder_contests[x[1]],
+            OrderedDict.fromkeys(
+                sorted(
+                    [
+                        (calc_edit_distance(contest_name, reduction_contest_name(contest.name)), i)
+                        for i, contest in enumerate(atcoder_contests)
+                    ]
+                    + [
+                        (calc_edit_distance(contest_name, reduction_contest_name(contest.sub_name)), i)
+                        for i, contest in enumerate(atcoder_contests)
+                        if contest.sub_name
+                    ],
+                ),
+            ),
+        )
+    )
+
+    return edit_dists

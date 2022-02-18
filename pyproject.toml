@@ -1,3 +1,20 @@
+# black
+[tool.black]
+line-length = 119
+
+# adjust isort to black
+[tool.isort]
+profile = "black"
+line_length = 119
+
+
+# mypy
+[[tool.mypy.overrides]]
+module = "Levenshtein"
+ignore_missing_imports = true
+
+
+# poetry
 [tool.poetry]
 name = "marathon-matches-manager"
 version = "0.1.1"
@@ -8,11 +25,18 @@ authors = ["kryInit <kryinit@gmail.com>"]
 python = "^3.9"
 Flask = "^2.0.3"
 docopt = "^0.6.2"
+beautifulsoup4 = "^4.10.0"
+requests = "^2.27.1"
+python-Levenshtein = "^0.12.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 isort = "^5.10.1"
 mypy = "^0.931"
+types-docopt = "^0.6.5"
+black = "^22.1.0"
+types-requests = "^2.27.10"
+types-beautifulsoup4 = "^4.10.12"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

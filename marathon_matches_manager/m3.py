@@ -13,6 +13,7 @@ Options:
 """
 
 import logging
+import sys
 
 from docopt import docopt
 from flask import Flask, render_template
@@ -23,19 +24,19 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s]: %(message)s")
 
 
-@app.route('/')
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
 
 def main():
     args = docopt(__doc__)
-    print(args)
-    if args['new']:
-        generate_template(args['<name>'])
-    elif args['vis']:
-        app.run(host='0.0.0.0', port=5000)
-    elif args['hi']:
+    print(args, file=sys.stderr)
+    if args["new"]:
+        generate_template(args["<name>"])
+    elif args["vis"]:
+        app.run(host="0.0.0.0", port=5000)
+    elif args["hi"]:
         print("hello!")
 
 
