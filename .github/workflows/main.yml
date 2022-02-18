@@ -1,0 +1,43 @@
+name: check by mypy, isort, and black. and build react app
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+      
+
+jobs:
+  check:
+    name: check by mypy, isort, and black
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install library
+        run: poetry install
+      
+      - name: check by mypy
+        run: mypy ./marathon_matches_manager
+
+      - name: check by isort
+        run: isort --check-only ./marathon_matches_manager
+
+      - name: check by black
+        run: black --check ./marathon_matches_manager
+
+
+  build:
+    name: build react app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install library
+        run: npm install
+        working-directory: ./front-end
+
+      - name: build
+        run: npm run build
+        working-directory: ./front-end
