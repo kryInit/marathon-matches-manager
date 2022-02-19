@@ -16,7 +16,6 @@ Options:
 """
 
 import logging
-import sys
 
 from docopt import docopt
 from flask import Flask, render_template

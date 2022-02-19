@@ -50,14 +50,19 @@ def generate_template(name: str) -> None:
     predicted_contests = _predict_related_contests(name, atcoder_contests)
 
     print()
+    skipped = False
+    for_this_contest = None
     for contest in predicted_contests:
         formatted_contest_name = text_styling(contest.name, color=Fore.CYAN, style=Style.BRIGHT)
         replay = input(f"this template will be used for {formatted_contest_name}?  [y/n/s(skip)]: ").strip()
         if replay == "s" or replay == "skip":
+            skipped = True
             break
         elif replay == "y" or replay == "yes":
             for_this_contest = contest
             break
+    if not skipped and for_this_contest is None:
+        logger.warning("No further contest information available...")
     print()
 
     logger.info(text_styling("CREATION SUCCESSFUL!", color=Fore.GREEN, style=Style.BRIGHT))
@@ -120,26 +125,26 @@ def _calc_edit_distance(s1: str, s2: str) -> float:
     return (d1 + d2) / 2
 
 
-def _predict_related_contests(raw_contest_name: str, atcoder_contests: List[ContestInfo]) -> List[ContestInfo]:
+def _predict_related_contests(raw_name: str, atcoder_contests: List[ContestInfo]) -> List[ContestInfo]:
     # name, url, period, in progress,
 
-    contest_name = _normalize_contest_name(raw_contest_name)
+    name = _normalize_contest_name(raw_name)
 
     edit_dists = list(
         map(
-            lambda x: atcoder_contests[x[1]],
+            lambda x: atcoder_contests[x],
             OrderedDict.fromkeys(
-                sorted(
-                    [
-                        (_calc_edit_distance(contest_name, _normalize_contest_name(contest.name)), i)
-                        for i, contest in enumerate(atcoder_contests)
-                    ]
-                    + [
-                        (_calc_edit_distance(contest_name, _normalize_contest_name(contest.sub_name)), i)
-                        for i, contest in enumerate(atcoder_contests)
-                        if contest.sub_name
-                    ],
-                ),
+                map(
+                    lambda x: x[1],
+                    sorted(
+                        [
+                            (_calc_edit_distance(name, _normalize_contest_name(contest_name)), i // 2)
+                            for i, contest_name in enumerate(
+                                sum(map(lambda x: [x.name, x.sub_name], atcoder_contests), [])
+                            )
+                        ]
+                    ),
+                )
             ),
         )
     )
