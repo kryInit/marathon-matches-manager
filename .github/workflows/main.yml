@@ -1,0 +1,66 @@
+name: check by mypy, isort, and black. and build react app
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+      
+
+jobs:
+  check:
+    name: check by mypy, isort, and black
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.9" ]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: set up python${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install poetry
+        run: |
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+
+      - name: show versions
+        run: |
+          python --version
+          poetry --version
+
+
+      - name: install library
+        run: poetry install
+      
+      - name: check by mypy
+        run: poetry run mypy ./marathon_matches_manager
+
+      - name: check by isort
+        run: poetry run isort --check-only ./marathon_matches_manager
+
+      - name: check by black
+        run: poetry run black --check ./marathon_matches_manager
+
+
+  build:
+    name: build react app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: show version
+        run: npm --version
+
+      - name: install library
+        run: npm install
+        working-directory: ./front-end
+
+      - name: build
+        run: npm run build
+        working-directory: ./front-end

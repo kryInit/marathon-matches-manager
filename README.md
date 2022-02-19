@@ -1,3 +1,5 @@
+![github actions](https://github.com/kryinit/marathon-matches-manager/actions/workflows/main.yml/badge.svg)
+
 # marathon-matches-manager
 
 ## for development
@@ -9,7 +11,7 @@ npm install
 npm run build
 cd ../
 poetry install
-poetry run m3 hi
+poetry run m3 --help
 ```
 
 ## for use
