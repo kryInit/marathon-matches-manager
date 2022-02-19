@@ -78,7 +78,7 @@ unicode_backport = ["unicodedata2"]
 
 [[package]]
 name = "click"
-version = "8.0.3"
+version = "8.0.4"
 description = "Composable command line interface toolkit"
 category = "main"
 optional = false
@@ -340,6 +340,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "types-colorama"
+version = "0.4.8"
+description = "Typing stubs for colorama"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "types-docopt"
 version = "0.6.5"
 description = "Typing stubs for docopt"
@@ -409,7 +417,7 @@ watchdog = ["watchdog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "171c997b687af3873611565673d84ecfb77c90d469844aa00ec01b6182f01e6d"
+content-hash = "d837efb5cdbf494b64d8b21cd7c811eb2794f1c9ab5ee53416b7fb32809387ac"
 
 [metadata.files]
 atomicwrites = [
@@ -458,8 +466,8 @@ charset-normalizer = [
     {file = "charset_normalizer-2.0.12-py3-none-any.whl", hash = "sha256:6881edbebdb17b39b4eaaa821b438bf6eddffb4468cf344f09f89def34a8b1df"},
 ]
 click = [
-    {file = "click-8.0.3-py3-none-any.whl", hash = "sha256:353f466495adaeb40b6b5f592f9f91cb22372351c84caeb068132442a4518ef3"},
-    {file = "click-8.0.3.tar.gz", hash = "sha256:410e932b050f5eed773c4cda94de75971c89cdb3155a72a0831139a79e5ecb5b"},
+    {file = "click-8.0.4-py3-none-any.whl", hash = "sha256:6a7a62563bbfabfda3a38f3023a1db4a35978c0abd76f6c9605ecd6554d6d9b1"},
+    {file = "click-8.0.4.tar.gz", hash = "sha256:8458d7b1287c5fb128c90e23381cf99dcde74beaf6c7ff6384ce84d6fe090adb"},
 ]
 colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
@@ -606,6 +614,10 @@ tomli = [
 types-beautifulsoup4 = [
     {file = "types-beautifulsoup4-4.10.12.tar.gz", hash = "sha256:35aa3b6f3fcafb610dc36d83f209fb7e45f2e1f7d3710f91678d4df979434115"},
     {file = "types_beautifulsoup4-4.10.12-py3-none-any.whl", hash = "sha256:72e345746da157b861397c9aa6aa74ff0435f8e85bae1a364d7976e430dc674f"},
+]
+types-colorama = [
+    {file = "types-colorama-0.4.8.tar.gz", hash = "sha256:a4be06d4c25a96ba7db4fc1c90640e5a6646303df9abd9734d7ab92c89654ff8"},
+    {file = "types_colorama-0.4.8-py3-none-any.whl", hash = "sha256:16fb440f5851a13906caa5a502c5ecfd4b391c5e90df96af32f8f3ccf571c9e9"},
 ]
 types-docopt = [
     {file = "types-docopt-0.6.5.tar.gz", hash = "sha256:5a4860bd5c693e4877763fe25a8f0976ccff7a0fee50ef1a52cebda0dca4df77"},

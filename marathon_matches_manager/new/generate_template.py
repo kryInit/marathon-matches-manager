@@ -8,8 +8,28 @@ from typing import List
 import Levenshtein
 import requests
 from bs4 import BeautifulSoup
+from colorama import Fore, Style
 
 from marathon_matches_manager.const import CONST
+from marathon_matches_manager.utils.text_styling import text_styling
+
+
+@dataclasses.dataclass
+class ContestInfo:
+    name: str
+    sub_name: str
+    start_time: str
+    period: str
+    rated: str
+
+    def __str__(self):
+        return (
+            f"start time   : {self.start_time}\n"
+            f"contest name : {self.name}\n"
+            f"    sub name : {self.sub_name}\n"
+            f"period       : {self.period}\n"
+            f"rated        : {self.rated}"
+        )
 
 
 def generate_template(name: str) -> None:
@@ -31,7 +51,8 @@ def generate_template(name: str) -> None:
 
     print()
     for contest in predicted_contests:
-        replay = input(f"this template will be used for '{contest.name}'?  [y/n/s(skip)]: ").strip()
+        formatted_contest_name = text_styling(contest.name, color=Fore.CYAN, style=Style.BRIGHT)
+        replay = input(f"this template will be used for {formatted_contest_name}?  [y/n/s(skip)]: ").strip()
         if replay == "s" or replay == "skip":
             break
         elif replay == "y" or replay == "yes":
@@ -39,25 +60,7 @@ def generate_template(name: str) -> None:
             break
     print()
 
-    logger.info("creation successful!")
-
-
-@dataclasses.dataclass
-class ContestInfo:
-    name: str
-    sub_name: str
-    start_time: str
-    period: str
-    rated: str
-
-    def __str__(self):
-        return (
-            f"start time   : {self.start_time}\n"
-            f"contest name : {self.name}\n"
-            f"    sub name : {self.sub_name}\n"
-            f"period       : {self.period}\n"
-            f"rated        : {self.rated}"
-        )
+    logger.info(text_styling("CREATION SUCCESSFUL!", color=Fore.GREEN, style=Style.BRIGHT))
 
 
 def _get_all_atcoder_marathon_contests(overseas: bool = False) -> List[ContestInfo]:
@@ -104,18 +107,23 @@ def _get_all_atcoder_marathon_contests(overseas: bool = False) -> List[ContestIn
     return contests
 
 
+def _normalize_contest_name(raw_name: str) -> str:
+    name = re.sub("[\W_]", "", raw_name).lower()
+    name = name.replace("ahc", "atcoderheuristiccontest")
+    name = name.replace("httf", "hacktothefuture")
+    return name
+
+
+def _calc_edit_distance(s1: str, s2: str) -> float:
+    d1 = Levenshtein.distance(s1, s2) / max(len(s1), len(s2))
+    d2 = 1.0 - Levenshtein.jaro_winkler(s1, s2)
+    return (d1 + d2) / 2
+
+
 def _predict_related_contests(raw_contest_name: str, atcoder_contests: List[ContestInfo]) -> List[ContestInfo]:
     # name, url, period, in progress,
 
-    def reduction_contest_name(name: str) -> str:
-        return re.sub("[\W_]", "", name).lower().replace("ahc", "atcoderheuristiccontest")
-
-    def calc_edit_distance(s1: str, s2: str) -> float:
-        d1 = Levenshtein.distance(s1, s2) / max(len(s1), len(s2))
-        d2 = 1.0 - Levenshtein.jaro_winkler(s1, s2)
-        return (d1 + d2) / 2
-
-    contest_name = reduction_contest_name(raw_contest_name)
+    contest_name = _normalize_contest_name(raw_contest_name)
 
     edit_dists = list(
         map(
@@ -123,11 +131,11 @@ def _predict_related_contests(raw_contest_name: str, atcoder_contests: List[Cont
             OrderedDict.fromkeys(
                 sorted(
                     [
-                        (calc_edit_distance(contest_name, reduction_contest_name(contest.name)), i)
+                        (_calc_edit_distance(contest_name, _normalize_contest_name(contest.name)), i)
                         for i, contest in enumerate(atcoder_contests)
                     ]
                     + [
-                        (calc_edit_distance(contest_name, reduction_contest_name(contest.sub_name)), i)
+                        (_calc_edit_distance(contest_name, _normalize_contest_name(contest.sub_name)), i)
                         for i, contest in enumerate(atcoder_contests)
                         if contest.sub_name
                     ],

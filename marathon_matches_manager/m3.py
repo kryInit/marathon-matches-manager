@@ -3,13 +3,16 @@ Overview:
     todo
 
 Usage:
-  m3 new <name>
-  m3 vis
-  m3 hi
+  m3 new <name> [-v | --verbose --no-info]
+  m3 vis        [-v | --verbose --no-info]
+  m3 hi         [-v | --verbose --no-info]
+  m3 -h | --help
 
 Options:
-  -h, --help                        : show this help message
-      --name=<name>                 : [default: general]
+  -h, --help           : show this help message
+  -v, --verbose        : output debug and more important log
+      --no-info        : output more important log than info
+      --name=<name>    : [default: general]
 """
 
 import logging
@@ -18,10 +21,9 @@ import sys
 from docopt import docopt
 from flask import Flask, render_template
 
-from marathon_matches_manager.generate_template import generate_template
+from marathon_matches_manager.new.generate_template import generate_template
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s]: %(message)s")
 
 
 @app.route("/")
@@ -31,7 +33,13 @@ def index():
 
 def main():
     args = docopt(__doc__)
-    print(args, file=sys.stderr)
+
+    log_level = logging.DEBUG if args["--verbose"] else logging.WARNING if args["--no-info"] else logging.INFO
+    logging.basicConfig(level=log_level, format="[%(levelname)s]: %(message)s")
+
+    logger = logging.getLogger(__name__)
+    logger.debug(args)
+
     if args["new"]:
         generate_template(args["<name>"])
     elif args["vis"]:
