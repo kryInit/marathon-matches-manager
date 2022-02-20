@@ -53,7 +53,7 @@ def generate_template(name: str) -> None:
 
     if related_contest is not None:
         logger.info(
-            "this project is now associated with following contest\n"
+            "this project is now associated with the following contest\n"
             "=====================================\n"
             f"{related_contest}\n"
             "=====================================\n"
@@ -161,7 +161,9 @@ def _ask_related_contest(atcoder_contests: List[ContestInfo]) -> Optional[Contes
         progress = f"[{th+1:{ndn}d}/{n}] " if th != 0 else ""
         formatted_contest_name = text_styling(contest.name, color=Fore.CYAN, style=Style.BRIGHT)
 
-        replay = input(f"{progress}this template will be used for {formatted_contest_name}?  [y/n/s(skip)]: ").strip()
+        replay = input(
+            f"{progress}this template will be used for {formatted_contest_name}?  [y(yes) / s(skip) / other(no)]: "
+        ).strip()
 
         # yes: ye[s]
         if replay.endswith(("y", "yes")):
