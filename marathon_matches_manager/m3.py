@@ -4,16 +4,16 @@ Overview:
 
 Usage:
   m3 info [--path=<path>]
-  m3 new <name> [-v | --verbose --no-info]
-  m3 test gen [--name=<name> | --num=<gen-num> | --seed=<seed> | --over-write]
-  m3 test run [--name=<name>, --concurrency=<concurrency>]
+  m3 new <name> [-p | --pure]  [-v | --verbose] [--no-info]
+  m3 test gen [--name=<name>] [--num=<gen-num>] [--seed=<seed>] [--over-write]
+  m3 test run [--name=<name>] [--concurrency=<concurrency>]
   m3 submit server
   m3 submit local
   m3 optimize
   m3 stat
   m3 log
-  m3 vis [-v | --verbose --no-info]
-  m3 hi [-v | --verbose --no-info]
+  m3 vis [-v | --verbose] [--no-info]
+  m3 hi [-v | --verbose] [--no-info]
   m3 -h | --help
 
 Options:
