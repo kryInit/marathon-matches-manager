@@ -18,6 +18,7 @@ Usage:
 
 Options:
   -h, --help           : show this help message
+  -p, --pure           : no related contest
   -v, --verbose        : output debug and more important log
       --no-info        : output more important log than info
       --name=<name>    : [default: general]
