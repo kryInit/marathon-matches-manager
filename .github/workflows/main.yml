@@ -26,7 +26,7 @@ jobs:
 
       - name: Install poetry
         run: |
-          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+          curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.poetry/bin" >> $GITHUB_PATH
 
       - name: show versions
@@ -47,20 +47,3 @@ jobs:
       - name: check by black
         run: poetry run black --check ./marathon_matches_manager
 
-
-  build:
-    name: build react app
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: show version
-        run: npm --version
-
-      - name: install library
-        run: npm install
-        working-directory: ./front-end
-
-      - name: build
-        run: npm run build
-        working-directory: ./front-end
