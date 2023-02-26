@@ -6,10 +6,7 @@
 
 ```commandline
 git clone git@github.com:kryInit/marathon-matches-manager.git
-cd marathon-matches-manager/front-end
-npm install
-npm run build
-cd ../
+cd marathon-matches-manager
 poetry install
 poetry run m3 --help
 ```
