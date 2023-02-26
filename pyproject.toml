@@ -20,6 +20,8 @@ name = "marathon-matches-manager"
 version = "0.1.1"
 description = ""
 authors = ["kryInit <kryinit@gmail.com>"]
+readme = "README.md"
+
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -40,9 +42,12 @@ black = "^22.1.0"
 types-requests = "^2.27.10"
 types-beautifulsoup4 = "^4.10.12"
 
+[tool.poetry.group.dev.dependencies]
+invoke = "^2.0.0"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-m3 = "marathon_matches_manager.m3:main"
+m3 = "marathon_matches_manager.__main__:main"

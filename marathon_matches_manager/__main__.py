@@ -18,6 +18,7 @@ Usage:
 
 Options:
   -h, --help           : show this help message
+  -p, --pure           : no related contest
   -v, --verbose        : output debug and more important log
       --no-info        : output more important log than info
       --name=<name>    : [default: general]
@@ -26,16 +27,8 @@ Options:
 import logging
 
 from docopt import docopt
-from flask import Flask, render_template
 
-from marathon_matches_manager.new.generate_template import generate_template
-
-app = Flask(__name__)
-
-
-@app.route("/")
-def index():
-    return render_template("index.html")
+from .lib.new import generate_template
 
 
 def main():
@@ -49,8 +42,8 @@ def main():
 
     if args["new"]:
         generate_template(args["<name>"])
-    elif args["vis"]:
-        app.run(host="0.0.0.0", port=5000)
+    # elif args["vis"]:
+    # app.run(host="0.0.0.0", port=5000)
     elif args["hi"]:
         print("hello!")
 
