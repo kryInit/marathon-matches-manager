@@ -38,12 +38,6 @@ jobs:
       - name: install library
         run: poetry install
       
-      - name: check by mypy
-        run: poetry run mypy ./marathon_matches_manager
-
-      - name: check by isort
-        run: poetry run isort --check-only ./marathon_matches_manager
-
-      - name: check by black
-        run: poetry run black --check ./marathon_matches_manager
+      - name: check by mypy, isort, black
+        run: poetry run inv check
 
