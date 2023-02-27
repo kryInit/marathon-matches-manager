@@ -24,7 +24,7 @@ readme = "README.md"
 
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 Flask = "^2.0.3"
 docopt = "^0.6.2"
 beautifulsoup4 = "^4.10.0"
@@ -32,6 +32,7 @@ requests = "^2.27.1"
 python-Levenshtein = "^0.12.2"
 colorama = "^0.4.4"
 types-colorama = "^0.4.8"
+toml = "^0.10.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -44,6 +45,7 @@ types-beautifulsoup4 = "^4.10.12"
 
 [tool.poetry.group.dev.dependencies]
 invoke = "^2.0.0"
+types-toml = "^0.10.8.5"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

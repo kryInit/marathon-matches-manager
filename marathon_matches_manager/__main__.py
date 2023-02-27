@@ -42,6 +42,8 @@ def main():
 
     if args["new"]:
         generate_template(args["<name>"])
+    elif args["test"]:
+        print("HI")
     # elif args["vis"]:
     # app.run(host="0.0.0.0", port=5000)
     elif args["hi"]:

@@ -50,12 +50,14 @@ def fetch_all_atcoder_heuristic_contests(overseas: bool) -> List[Contest]:
                     if all(raw_contest_info):
                         start_time, contest_name, time_limit, is_rated = map(lambda x: x.text, raw_contest_info)
 
-                        sub_contest_name = raw_contest_info[1].get("href")
-                        sub_contest_name = "" if sub_contest_name is None else sub_contest_name.lstrip("/contests/")
+                        contest_rel_url = raw_contest_info[1].get("href")
+                        url = CONST.ATCODER_URL + contest_rel_url
+                        sub_contest_name = "" if contest_rel_url is None else contest_rel_url.lstrip("/contests/")
 
                         recognized_contest_count += 1
                         contests.append(
                             Contest(
+                                url=url,
                                 name=contest_name,
                                 sub_name=sub_contest_name,
                                 start_time=start_time,

@@ -10,7 +10,7 @@ source_root_path = project_root_path.joinpath('marathon_matches_manager')
 
 
 @task
-def check(c):
+def lint(c):
     os.chdir(project_root_path)
 
     check_commands = [
@@ -24,7 +24,7 @@ def check(c):
 
 
 @task
-def fix(c):
+def format(c):
     os.chdir(project_root_path)
 
     fix_commands = [
@@ -43,4 +43,4 @@ def exec_command(cmd: str):
     if result.returncode == 0:
         print(f"    -> {cmd_name}: {Fore.GREEN}{Style.BRIGHT}Passed{Style.RESET_ALL}\n")
     else:
-        print(f"    -> {cmd_name}: {Fore.GREEN}{Style.BRIGHT}Failed{Style.RESET_ALL}\n")
+        print(f"    -> {cmd_name}: {Fore.RED}{Style.BRIGHT}Failed{Style.RESET_ALL}\n")
