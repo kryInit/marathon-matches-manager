@@ -29,6 +29,7 @@ import logging
 from docopt import docopt
 
 from .lib.new import generate_template
+from .lib.testcases import generate_testcases
 
 
 def main():
@@ -43,7 +44,7 @@ def main():
     if args["new"]:
         generate_template(args["<name>"])
     elif args["test"]:
-        print("HI")
+        generate_testcases()
     # elif args["vis"]:
     # app.run(host="0.0.0.0", port=5000)
     elif args["hi"]:

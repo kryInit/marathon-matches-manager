@@ -1,14 +1,26 @@
-import dataclasses
+from datetime import datetime, timedelta
+
+from pydantic import BaseModel, HttpUrl, validator
+
+from ..utils import snake2kebab
 
 
-@dataclasses.dataclass
-class Contest:
-    url: str
+class Contest(BaseModel):
+    url: HttpUrl
     name: str
     sub_name: str
-    start_time: str
-    time_limit: str
+    start_time: datetime
+    time_limit: timedelta
     is_rated: str
+
+    class Config:
+        alias_generator = snake2kebab
+
+    @validator("time_limit")
+    def scale_time_limit(cls, time_limit: timedelta):
+        # 01:40 is 1 hour 40 minutes in atcoder
+        # but pydantic recognize it as 1 minute 40 seconds
+        return time_limit * 60
 
     def __str__(self):
         return (

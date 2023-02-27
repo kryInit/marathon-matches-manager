@@ -1,6 +1,8 @@
 import dataclasses
 from pathlib import Path
 
+from .models.command import Command
+
 
 @dataclasses.dataclass(frozen=True)
 class _CONST:

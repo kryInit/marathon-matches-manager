@@ -1,10 +1,13 @@
-import dataclasses
+from pathlib import Path
+
+from pydantic import BaseModel
+
+from ...utils import snake2kebab
 
 
-@dataclasses.dataclass
-class Project:
-    name: str
-    default_working_directory: str
+class Project(BaseModel):
+    name: str = "Untitled Project"
+    default_working_directory: Path = Path("${PROJECT_ROOT_PATH}")
 
-    def __init__(self, project_dict: dict):
-        pass
+    class Config:
+        alias_generator = snake2kebab
