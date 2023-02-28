@@ -3,7 +3,6 @@ from typing import Any, List, Optional
 
 from pydantic import BaseModel, HttpUrl, validator
 
-from ...utils import snake2kebab
 from ..command import Command
 
 
@@ -13,9 +12,6 @@ class OfficialTools(BaseModel):
     tools_path: Optional[Path] = None
     targets: List[str] = []
     setup: Command = None  # type: ignore
-
-    class Config:
-        alias_generator = snake2kebab
 
     @validator("targets", pre=True)
     def convert_single_target_to_list(cls, target: Any):

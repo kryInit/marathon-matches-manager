@@ -2,8 +2,6 @@ from datetime import datetime, timedelta
 
 from pydantic import BaseModel, HttpUrl, validator
 
-from ..utils import snake2kebab
-
 
 class Contest(BaseModel):
     url: HttpUrl
@@ -12,9 +10,6 @@ class Contest(BaseModel):
     start_time: datetime
     time_limit: timedelta
     is_rated: str
-
-    class Config:
-        alias_generator = snake2kebab
 
     @validator("time_limit")
     def scale_time_limit(cls, time_limit: timedelta):

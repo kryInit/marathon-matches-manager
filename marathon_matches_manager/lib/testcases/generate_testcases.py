@@ -2,7 +2,7 @@ import json
 
 import toml
 
-from ..models.config.config import M3Config
+from ..models.config import M3Config
 
 
 def generate_testcases():
