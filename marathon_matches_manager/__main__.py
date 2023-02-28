@@ -6,6 +6,7 @@ Usage:
   m3 new  <name> [-p | --pure]  [-v | --verbose] [--no-info]
   m3 init <name> [-p | --pure]  [-v | --verbose] [--no-info]
   m3 info [--path=<path>]
+  m3 official-tools setup
   m3 test gen [--name=<name>] [--num=<gen-num>] [--seed=<seed>] [--over-write]
   m3 test run [--name=<name>] [--concurrency=<concurrency>]
   m3 server run [--dev]
@@ -27,14 +28,17 @@ Options:
 """
 
 import logging
+import os
 import subprocess
 from typing import Union
 
+import toml
 from docopt import docopt
 from fastapi import FastAPI
 
 from .lib.models.config import ProjectConfig
 from .lib.new import generate_template
+from .lib.official_tools import setup_official_tools
 from .lib.testcases import generate_testcases
 
 app = FastAPI()
@@ -59,12 +63,22 @@ def main():
     logger = logging.getLogger(__name__)
     # logger.debug(args)
 
+    # todo: fix
+    os.environ["PROJECT_ROOT_PATH"] = "/Users/rk/Projects/marathon-matches-manager/workspace/ahc018"
+    # todo: fix
+    with open("/Users/rk/Projects/marathon-matches-manager/workspace/ahc018/m3-config.toml", mode="r") as f:
+        content = toml.load(f)
+    config = ProjectConfig.parse_obj(content)
+
     if args["new"]:
         generate_template(args["<name>"])
     elif args["test"]:
         generate_testcases()
     # elif args["vis"]:
     # app.run(host="0.0.0.0", port=5000)
+    elif args["official-tools"]:
+        if args["setup"]:
+            setup_official_tools(config)
     elif args["hi"]:
         print("hello!")
     elif args["server"]:

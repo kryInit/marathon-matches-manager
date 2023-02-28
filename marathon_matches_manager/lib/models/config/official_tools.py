@@ -28,12 +28,12 @@ class OfficialTools(BaseModel):
         tools_url: HttpUrl = values["tools_url"]
         targets: List[str] = values["targets"]
         return Command(
-            name="setup tools",
+            name="setup official tools",
             run=[
                 f"curl {tools_url} --output tmp.zip",
                 "unzip tmp.zip",
                 "rm tmp.zip",
-                "cd tools",
-            ]
-            + [f"cargo build --release --bin {target}" for target in targets],
+                "mv tools official_tools",
+                "cd ./official_tools; cargo build --release",
+            ],
         )
