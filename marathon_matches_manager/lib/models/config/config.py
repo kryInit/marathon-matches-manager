@@ -7,7 +7,7 @@ from .official_tools import OfficialTools
 from .project import Project
 
 
-class M3Config(BaseModel):
+class ProjectConfig(BaseModel):
     project: Project
     contest: Optional[Contest]
     official_tools: Optional[OfficialTools]

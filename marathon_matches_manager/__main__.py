@@ -33,7 +33,7 @@ from typing import Union
 from docopt import docopt
 from fastapi import FastAPI
 
-from .lib.models.config import M3Config
+from .lib.models.config import ProjectConfig
 from .lib.new import generate_template
 from .lib.testcases import generate_testcases
 
@@ -46,7 +46,7 @@ def read_root():
 
 
 @app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[M3Config, None] = None):
+def read_item(item_id: int, q: Union[ProjectConfig, None] = None):
     return {"item_id": item_id, "q": q}
 
 
