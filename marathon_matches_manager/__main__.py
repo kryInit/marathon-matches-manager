@@ -28,14 +28,13 @@ Options:
 """
 
 import logging
-import os
 import subprocess
 from typing import Union
 
-import toml
 from docopt import docopt
 from fastapi import FastAPI
 
+from .lib.environment import environment
 from .lib.models.config import ProjectConfig
 from .lib.new import generate_template
 from .lib.official_tools import setup_official_tools
@@ -55,6 +54,9 @@ def read_item(item_id: int, q: Union[ProjectConfig, None] = None):
 
 
 def main():
+    if environment.in_project:
+        os.environ["PROJECT_ROOT_PATH"] = str(environment.project_root_path)
+
     args = docopt(__doc__)
 
     log_level = logging.DEBUG if args["--verbose"] else logging.WARNING if args["--no-info"] else logging.INFO
@@ -62,13 +64,6 @@ def main():
 
     logger = logging.getLogger(__name__)
     # logger.debug(args)
-
-    # todo: fix
-    os.environ["PROJECT_ROOT_PATH"] = "/Users/rk/Projects/marathon-matches-manager/workspace/ahc018"
-    # todo: fix
-    with open("/Users/rk/Projects/marathon-matches-manager/workspace/ahc018/m3-config.toml", mode="r") as f:
-        content = toml.load(f)
-    config = ProjectConfig.parse_obj(content)
 
     if args["new"]:
         generate_template(args["<name>"])
@@ -78,7 +73,7 @@ def main():
     # app.run(host="0.0.0.0", port=5000)
     elif args["official-tools"]:
         if args["setup"]:
-            setup_official_tools(config)
+            setup_official_tools(environment.project_config)
     elif args["hi"]:
         print("hello!")
     elif args["server"]:
