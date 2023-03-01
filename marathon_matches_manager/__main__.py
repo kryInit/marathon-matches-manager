@@ -28,17 +28,18 @@ Options:
 """
 
 import logging
+import os
 import subprocess
 from typing import Union
 
 from docopt import docopt
 from fastapi import FastAPI
 
-from .lib.environment import environment
 from .lib.models.config import ProjectConfig
 from .lib.new import generate_template
 from .lib.official_tools import setup_official_tools
 from .lib.testcases import generate_testcases
+from .lib.utils import environment
 
 app = FastAPI()
 

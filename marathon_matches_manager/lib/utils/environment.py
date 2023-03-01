@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Optional
 
 import toml
 from pydantic import BaseModel
 
+from ..models import ProjectConfig
 from .const import CONST
-from .models import ProjectConfig
 
 
 class Environment(BaseModel):

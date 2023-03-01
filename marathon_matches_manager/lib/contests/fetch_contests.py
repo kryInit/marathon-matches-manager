@@ -4,8 +4,8 @@ from typing import List
 import requests
 from bs4 import BeautifulSoup
 
-from ..const import CONST
 from ..models import Contest
+from ..utils.const import CONST
 
 
 def fetch_all_atcoder_heuristic_contests(overseas: bool) -> List[Contest]:

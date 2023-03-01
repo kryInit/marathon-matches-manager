@@ -1,6 +1,6 @@
 import json
 
-from ..environment import environment
+from ..utils import environment
 
 
 def generate_testcases():
