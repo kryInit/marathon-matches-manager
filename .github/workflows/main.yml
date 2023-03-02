@@ -1,20 +1,18 @@
-name: check by mypy, isort, and black. and build react app
+name: lint
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
       
 
 jobs:
   check:
-    name: check by mypy, isort, and black
+    name: lint
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.9" ]
+        python-version: [ "3.10" ]
 
     steps:
       - uses: actions/checkout@v2
@@ -38,12 +36,6 @@ jobs:
       - name: install library
         run: poetry install
       
-      - name: check by mypy
-        run: poetry run mypy ./marathon_matches_manager
-
-      - name: check by isort
-        run: poetry run isort --check-only ./marathon_matches_manager
-
-      - name: check by black
-        run: poetry run black --check ./marathon_matches_manager
+      - name: lint
+        run: poetry run inv lint
 

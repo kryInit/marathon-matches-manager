@@ -20,10 +20,8 @@ def generate_template(name: str) -> None:
         return
 
     path.mkdir()
-    path.joinpath(".m3").mkdir()
-    path.joinpath(".m3/test").mkdir()
-    path.joinpath(".m3/tools").mkdir()
-    path.joinpath(".m3/config.toml").mkdir()
+    # path.joinpath(".m3").mkdir()
+    path.joinpath("m3-config.toml").touch()
 
     try:
         related_contest = ask_related_contest(name)
@@ -32,7 +30,7 @@ def generate_template(name: str) -> None:
         logger.info(text_styling("    -> Keyboard Interrupted", color=Fore.RED))
         logger.info(text_styling("       cleaning...", color=Fore.RED))
         shutil.rmtree(path)
-        logger.info(text_styling("       cleaning finished", color=Fore.RED))
+        logger.info(text_styling("       cleaned", color=Fore.RED))
         return
 
     logger.info(text_styling("CREATION SUCCESSFUL!", color=Fore.GREEN, style=Style.BRIGHT))
