@@ -19,21 +19,30 @@ class OfficialTools(BaseModel):
             return [target]
         return target
 
-    @validator("setup", always=True)
+    @validator("setup", always=True, pre=True)
     def generate_default_setup_command(cls, setup: Any, values):
-        if setup is not None:
+        if values['tools_url'] is None:
             return setup
-        if "tools_url" not in values:
-            return Command(disable=True)
+
         tools_url: HttpUrl = values["tools_url"]
-        targets: List[str] = values["targets"]
-        return Command(
-            name="setup official tools",
-            run=[
-                f"curl {tools_url} --output tmp.zip",
-                "unzip tmp.zip",
-                "rm tmp.zip",
-                "mv tools official_tools",
-                "cd ./official_tools; cargo build --release",
-            ],
-        )
+        default_run = [
+            f"curl {tools_url} --output tmp.zip",
+            "unzip tmp.zip",
+            "rm tmp.zip",
+            "mv tools official_tools",
+            "cd ./official_tools; cargo build --release",
+        ]
+
+        if setup is None:
+            return {'run': default_run}
+        elif isinstance(setup, dict) and 'run' not in setup:
+            return {**setup, 'run': default_run}
+        else:
+            return setup
+
+    @validator("setup")
+    def set_nop_setup_command(cls, setup: Optional[Command]):
+        if setup is None:
+            return Command(disable=True)
+        else:
+            return setup
