@@ -67,7 +67,9 @@ def main():
     # logger.debug(args)
 
     if args["new"]:
-        generate_template(args["<name>"])
+        generate_template(args["<name>"],False)
+    elif args["init"]:
+        generate_template(args["<name>"],True)
     elif args["test"]:
         generate_testcases()
     # elif args["vis"]:
@@ -79,7 +81,6 @@ def main():
         print("hello!")
     elif args["server"]:
         subprocess.run(f"uvicorn marathon_matches_manager.__main__:app {'--reload' if args['--dev'] else ''}".split())
-
 
 if __name__ == "__main__":
     main()
