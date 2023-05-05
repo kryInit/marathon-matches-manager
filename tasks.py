@@ -19,8 +19,11 @@ def lint(c):
         f"black --check {source_root_path}"
     ]
 
+    succeeded = True
     for cmd in lint_commands:
-        exec_command(cmd)
+        result = exec_command(cmd)
+        succeeded &= result
+    exit(0 if succeeded else 255)
 
 
 @task
@@ -32,8 +35,10 @@ def format(c):
         f"black {source_root_path}"
     ]
 
+    succeeded = True
     for cmd in format_commands:
-        exec_command(cmd)
+        succeeded &= exec_command(cmd)
+    exit(0 if succeeded else 255)
 
 
 @task
@@ -46,8 +51,10 @@ def lf(c):
         f"black {source_root_path}"
     ]
 
+    succeeded = True
     for cmd in lint_and_format_commands:
-        exec_command(cmd)
+        succeeded &= exec_command(cmd)
+    exit(0 if succeeded else 255)
 
 
 def exec_command(cmd: str):
@@ -58,3 +65,4 @@ def exec_command(cmd: str):
         print(f"[{cmd_name}] {Fore.GREEN}{Style.BRIGHT}Passed{Style.RESET_ALL}\n")
     else:
         print(f"[{cmd_name}] {Fore.RED}{Style.BRIGHT}Failed{Style.RESET_ALL}\n")
+    return result.returncode == 0
