@@ -38,7 +38,7 @@ from fastapi import FastAPI
 from .lib.models.config import ProjectConfig
 from .lib.new import generate_template
 from .lib.official_tools import setup_official_tools
-from .lib.testcases import generate_testcases
+from .lib.test_solver import generate_testcases
 from .lib.utils import environment
 
 app = FastAPI()
