@@ -1,2 +1,3 @@
-from .config.config import ProjectConfig, Project, OfficialTools
+from .command import Command, GenCaseCommand, TestConfig
+from .config import BaseConfig, ProjectConfig
 from .contest import Contest

@@ -1,17 +1,16 @@
-import logging
 import sys
 from typing import Optional
 
 from colorama import Fore, Style
+from logzero import logger
 
 from ..contests import fetch_all_atcoder_heuristic_contests, sorted_contests_by_relevance
+from ..misc import text_styling
 from ..models import Contest
-from ..utils import text_styling
 
 
 def ask_related_contest(name: str, overseas: bool = False) -> Optional[Contest]:
     atcoder_contests = sorted_contests_by_relevance(name, fetch_all_atcoder_heuristic_contests(overseas))
-    logger = logging.getLogger(__name__)
     contest_count = len(atcoder_contests)
     contest_count_digit_len = len(str(contest_count))
 

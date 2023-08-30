@@ -5,10 +5,11 @@ Overview:
 Usage:
   m3 new  <name> [-p | --pure]  [-v | --verbose] [--no-info]
   m3 init <name> [-p | --pure]  [-v | --verbose] [--no-info]
-  m3 info [--path=<path>]
-  m3 official-tools setup
-  m3 test gen [--name=<name>] [--num=<gen-num>] [--seed=<seed>] [--over-write]
-  m3 test run [--name=<name>] [--concurrency=<concurrency>]
+  m3 info [--path <path>]
+  m3 run <command-name>
+  m3 test gen-suite [--name <name>] [--num <case-num>] [--seed <seed>]
+  m3 test run [--name <name>] [--concurrency <concurrency>]
+  m3 utils gen-seeds [-n <n>] [--seed <seed>] [--upper-bound <upper-bound>] [-v | --verbose] [--no-info]
   m3 server run [--dev]
   m3 submit local
   m3 submit server
@@ -24,22 +25,33 @@ Options:
   -p, --pure           : no related contest
   -v, --verbose        : output debug and more important log
       --no-info        : output more important log than info
-      --name=<name>    : [default: general]
+      --name=<name>    : [default: main]
+  -n                   : [default: 100]
 """
+import logzero
 
-import logging
+formatter = logzero.LogFormatter(
+    fmt="%(color)s[%(levelname)7s %(asctime)s]%(end_color)s %(message)s",
+    datefmt="%m/%d %H:%M:%S",
+)
+logzero.setup_default_logger(formatter=formatter)
+
 import os
 import subprocess
+import sys
 from typing import Union
 
 from docopt import docopt
 from fastapi import FastAPI
+from logzero import logger
 
+from .lib.misc import environment
 from .lib.models.config import ProjectConfig
 from .lib.new import generate_template
-from .lib.official_tools import setup_official_tools
-from .lib.test_solver import generate_testcases
-from .lib.utils import environment
+from .lib.run import exec_command_by_name
+from .lib.test_solver import TestRunner
+from .lib.test_solver.case.case_generator import TestSuiteGenerator
+from .lib.utils import gen_seeds
 
 app = FastAPI()
 
@@ -55,26 +67,36 @@ def read_item(item_id: int, q: Union[ProjectConfig, None] = None):
 
 
 def main():
-    if environment.in_project:
-        os.environ["PROJECT_ROOT_PATH"] = str(environment.project_root_path)
-
     args = docopt(__doc__)
 
-    log_level = logging.DEBUG if args["--verbose"] else logging.WARNING if args["--no-info"] else logging.INFO
-    logging.basicConfig(level=log_level, format="[%(levelname)s]: %(message)s")
+    logzero.loglevel(logzero.DEBUG)
+    # logzero.loglevel(logzero.DEBUG if args["--verbose"] else logzero.WARNING if args["--no-info"] else logzero.INFO)
+    # print(environment.project_config.dict())
 
-    logger = logging.getLogger(__name__)
-    # logger.debug(args)
+    # cmds = global_config.commands["setup-official-tools"]
+    # for cmd in cmds.run:
+    #     logger.info(f"[exec command]: {cmd}")
+    #     subprocess.run(cmd, env=os.environ, shell=True, cwd=os.path.expandvars(cmds.working_directory), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    # print(environment.show())
 
     if args["new"]:
         generate_template(args["<name>"])
+    elif args["init"]:
+        generate_template(args["<name>"], in_place=True)
     elif args["test"]:
-        generate_testcases()
-    # elif args["vis"]:
-    # app.run(host="0.0.0.0", port=5000)
-    elif args["official-tools"]:
-        if args["setup"]:
-            setup_official_tools(environment.project_config)
+        if args["gen-suite"]:
+            # generate_testcases(args["<name>"], args["<case-num>"], args["<seed>"])
+            TestSuiteGenerator.generate(args["--name"], environment.global_config.tester.case.generator["main"])
+            # exit(-1)
+        elif args["run"]:
+            TestRunner.run(args["--name"], concurrency=args["--concurrency"])
+            # TestExecutor.exec_by_name(args["--name"])
+    elif args["run"]:
+        exec_command_by_name(args["<command-name>"])
+    elif args["utils"]:
+        if args["gen-seeds"]:
+            gen_seeds(args["<n>"], args["<seed>"], args["<upper-bound>"])
     elif args["hi"]:
         print("hello!")
     elif args["server"]:

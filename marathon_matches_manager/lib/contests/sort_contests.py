@@ -2,8 +2,8 @@ import re
 from collections import OrderedDict
 from typing import List
 
+from ..misc import calc_str_relevance
 from ..models import Contest
-from ..utils import calc_str_relevance
 
 
 def sorted_contests_by_relevance(requested_contest_name: str, atcoder_contests: List[Contest]) -> List[Contest]:

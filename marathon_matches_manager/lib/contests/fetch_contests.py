@@ -1,15 +1,14 @@
-import logging
 from typing import List
 
 import requests
 from bs4 import BeautifulSoup
+from logzero import logger
 
+from ..misc.const import CONST
 from ..models import Contest
-from ..utils.const import CONST
 
 
 def fetch_all_atcoder_heuristic_contests(overseas: bool) -> List[Contest]:
-    logger = logging.getLogger(__name__)
     logger.debug(CONST.ATCODER_PAST_HEURISTIC_CONTESTS_URL)
 
     page_num_limit = 30

@@ -35,6 +35,9 @@ toml = "^0.10.2"
 pydantic = "^1.10.5"
 fastapi = "^0.92.0"
 uvicorn = {extras = ["standard"], version = "^0.20.0"}
+injector = "^0.21.0"
+logzero = "^1.7.0"
+tqdm = "^4.66.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

@@ -1,3 +1,4 @@
+"""
 import logging
 import os
 import subprocess
@@ -25,3 +26,5 @@ def setup_official_tools(config: ProjectConfig) -> None:
             timeout=setup_command.timeout.seconds,
             cwd=os.path.expandvars(setup_command.working_directory),
         )
+
+"""

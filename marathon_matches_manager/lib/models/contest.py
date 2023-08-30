@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Dict
 
 from pydantic import BaseModel, HttpUrl, validator
 
@@ -10,9 +11,10 @@ class Contest(BaseModel):
     start_time: datetime
     time_limit: timedelta
     is_rated: str
+    environment: Dict[str, str] = dict()
 
     @validator("time_limit")
-    def scale_time_limit(cls, time_limit: timedelta):
+    def scale_time_limit(cls, time_limit: timedelta) -> timedelta:
         # 01:40 is 1 hour 40 minutes in atcoder
         # but pydantic recognize it as 1 minute 40 seconds
         return time_limit * 60
@@ -24,5 +26,6 @@ class Contest(BaseModel):
             f"    sub name : {self.sub_name}\n"
             f"start time   : {self.start_time}\n"
             f"time limit   : {self.time_limit}\n"
-            f"is rated     : {self.is_rated}"
+            f"is rated     : {self.is_rated}\n"
+            f"environment  : {self.environment}"
         )
