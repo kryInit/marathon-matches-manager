@@ -77,6 +77,13 @@ class GenCaseCommand(Command):
             raise ValueError("gen-case.case_paths should have at least one path")
         return values
 
+    def generate(self, case_num: Optional[int] = None):
+        if case_num is None:
+            case_num = 100
+        env = os.environ
+        env["case_num"] = str(case_num)
+        self.exec(env=env)
+
 
 class TestCaseConfig(BaseModel):
     path: Path = Path("${project_root_path}/cases")
@@ -129,4 +136,3 @@ class TestConfig(BaseModel):
                 values["pre_cmd"]["name"] = "pre_cmd"
 
         return values
-

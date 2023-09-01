@@ -38,6 +38,9 @@ uvicorn = {extras = ["standard"], version = "^0.20.0"}
 injector = "^0.21.0"
 logzero = "^1.7.0"
 tqdm = "^4.66.1"
+rich = "^13.5.2"
+asciichartpy = "^1.5.25"
+numpy = "^1.25.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

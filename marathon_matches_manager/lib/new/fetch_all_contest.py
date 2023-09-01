@@ -10,6 +10,7 @@ from logzero import logger
 from ..misc.const import CONST
 from ..models import Contest
 
+
 def fetch_all_atcoder_heuristic_contests_sorted_by_relevance(name: str, overseas: bool) -> List[Contest]:
     return sorted_contests_by_relevance(name, fetch_all_atcoder_heuristic_contests(overseas))
 

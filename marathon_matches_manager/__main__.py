@@ -7,8 +7,8 @@ Usage:
   m3 init <name> [-p | --pure]  [-v | --verbose] [--no-info]
   m3 info [--path <path>]
   m3 run <command-name>
-  m3 gen suite [--name <name>] [--num <case-num>] [--seed <seed>]
-  m3 test suite [--name <name>] [--concurrency <concurrency>]
+  m3 gen suite [--name <name>] [--case-num <case-num>] [--seed <seed>]
+  m3 test suite [--name <name>] [--case-num <case-num>] [--concurrency <concurrency>]
   m3 test case <name>
   m3 utils gen-seeds [-n <n>] [--seed <seed>] [--upper-bound <upper-bound>] [-v | --verbose] [--no-info]
   m3 server run [--dev]
@@ -44,12 +44,13 @@ from typing import Union
 from docopt import docopt
 from fastapi import FastAPI
 
+from marathon_matches_manager.lib.test_solver.case_generator import TestSuiteGenerator
+
 from .lib.misc import environment
 from .lib.models.config import ProjectConfig
 from .lib.new import generate_template
 from .lib.run import exec_command_by_name
 from .lib.test_solver import TestRunner
-from marathon_matches_manager.lib.test_solver.case_generator import TestSuiteGenerator
 from .lib.utils import gen_seeds
 
 app = FastAPI()
@@ -77,6 +78,7 @@ def main():
     #     logger.info(f"[exec command]: {cmd}")
     #     subprocess.run(cmd, env=os.environ, shell=True, cwd=os.path.expandvars(cmds.working_directory), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+    # print(environment.global_config.test)
     # print(environment.show())
 
     if args["new"]:
@@ -85,10 +87,12 @@ def main():
         generate_template(args["<name>"], in_place=True)
     elif args["gen"]:
         if args["suite"]:
-            TestSuiteGenerator.generate(args["--name"], environment.global_config.test.case.generator["main"])
+            TestSuiteGenerator.generate(
+                args["--name"], environment.project_config.test.case.generator["main"], case_num=args["<case-num>"]
+            )
     elif args["test"]:
         if args["suite"]:
-            TestRunner.run_on_suite(args["--name"], concurrency=args["<concurrency>"])
+            TestRunner.run_on_suite(args["--name"], concurrency=args["<concurrency>"], exec_num=args["<case-num>"])
         elif args["case"]:
             TestRunner.run_on_case(args["<name>"])
     elif args["run"]:
@@ -99,7 +103,9 @@ def main():
     elif args["hi"]:
         print("hello!")
     elif args["server"]:
-        subprocess.run(f"uvicorn marathon_matches_manager.__main__:app {'--reload' if args['--dev'] else ''}".split())
+        subprocess.run(
+            f"uvicorn marathon_matches_manager.__main__:app {'--reload' if args['--dev'] else ''}", shell=True
+        )
 
 
 if __name__ == "__main__":

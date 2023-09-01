@@ -2,7 +2,7 @@ import hashlib
 import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 
 import toml
 from logzero import logger
@@ -23,7 +23,9 @@ def flatten_files(paths: Iterable[Path]) -> Iterable[Path]:
 
 class TestCaseGenerator:
     @classmethod
-    def generate(cls, command: GenCaseCommand) -> List[TestCase]:
+    def generate(cls, command: GenCaseCommand, case_num: Optional[int] = None) -> List[TestCase]:
+        if case_num is None:
+            case_num = 100
         dest_base_path = Path(expand_env_variables(environment.global_config.test.case.path))
         paths = flatten_files(command.case_paths)
 
@@ -31,7 +33,7 @@ class TestCaseGenerator:
             logger.info(f"create case directory: {dest_base_path}")
             dest_base_path.mkdir(parents=True)
 
-        command.exec()
+        command.generate(case_num)
         try:
             ret = cls.move_cases(paths, dest_base_path)
         except Exception as e:
@@ -70,8 +72,11 @@ class TestCaseGenerator:
 
 class TestSuiteGenerator:
     @classmethod
-    def generate(cls, suite_name: str, command: GenCaseCommand) -> TestSuite:
-        cases = TestCaseGenerator.generate(command)
+    def generate(cls, suite_name: str, command: GenCaseCommand, case_num: Optional[int] = None) -> TestSuite:
+        if case_num is None:
+            case_num = 100
+
+        cases = TestCaseGenerator.generate(command, case_num)
         suite_path = environment.global_config.test.suite.path.joinpath(f"{suite_name}")
         if suite_path.exists():
             logger.error(f"test suite path already exists: {suite_path}")
@@ -87,44 +92,28 @@ class TestSuiteGenerator:
 
         return suite
 
+    @classmethod
+    def append(cls, suite_name: str, case_num: Optional[int] = None) -> TestSuite:
+        # todo: configにコマンドを記述しておく, コマンドのhashも取らないといけないのか？
+        command = environment.project_config.test.case.generator["main"]
+        cases = TestCaseGenerator.generate(command, case_num)
 
-# class ITestCaseGenerator(ABC):
-#     @abstractmethod
-#     def postprocess(self, generated_case_paths: List[Path]) -> None:
-#
-#     @abstractmethod
-#     def generate(self, command: GenCaseCommand) -> List[Path]:
-#         raise NotImplementedError
-#
-#
-# class ITestSuiteGenerator(ABC):
-#     @abstractmethod
-#     def postprocess(self, generated_suite_path: Path) -> None:
-#         raise NotImplementedError
-#
-#     @abstractmethod
-#     def generate(self) -> Path:
-#         raise NotImplementedError
-#
-#
-# # case作るときに色々やりたくなったりしないかなというやつ
-#
-# class DefaultTestCaseGenerator(ITestCaseGenerator):
-#     def __init__(self):
-#         pass
-#
-#     def postprocess(self, generated_case_paths: List[Path]) -> None:
-#         super().postprocess(generated_case_paths)
-#
-#     def generate(self, command: GenCaseCommand) -> List[Path]:
-#         pass
-#
-# class ConfiguredTestSuiteGenerator(ITestSuiteGenerator):
-#     def __init__(self):
-#         pass
-#
-#     def postprocess(self, generated_suite_path: Path) -> None:
-#         super().postprocess(generated_suite_path)
-#
-#     def generate(self) -> Path:
-#         pass
+        suite_path = environment.global_config.test.suite.path.joinpath(f"{suite_name}")
+        if not suite_path.exists():
+            logger.error(f"test suite path not exists: {suite_path}")
+            raise FileExistsError
+
+        suite_config_path = expand_env_variables(suite_path.joinpath("config.toml"))
+        suite = TestSuite.parse_obj(toml.load(suite_config_path))
+
+        case_files = list(sorted(map(lambda x: x.file_name, cases)))
+        suite.case_files.extend(case_files)
+
+        # todo: hashどうしよっか, なんとなくhashが一致しないとテストすらできないのはかなり辛そうで、表示するときにhashでフィルタリングすればいい説は全然ある
+        hash_str = hashlib.sha256("/".join(case_files).encode()).hexdigest()
+        suite = TestSuite(name=suite_name, case_files=suite.case_files, hash=hash_str)
+
+        with open(suite_config_path, "w") as f:
+            toml.dump(suite.dict(), f)
+
+        return suite

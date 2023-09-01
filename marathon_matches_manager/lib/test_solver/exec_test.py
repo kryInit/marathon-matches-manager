@@ -2,7 +2,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 import toml
 from logzero import logger
@@ -10,8 +10,10 @@ from tqdm import tqdm
 
 from ..misc import environment
 from ..models import Command
-from ..utils import expand_env_variables, remove_any_file
-from .case import TestCase, TestSuite
+from ..utils import expand_env_variables
+from .case_generator import TestCase, TestSuite, TestSuiteGenerator
+from .model import TestResult
+from .visualize_result import display_results, draw_histogram
 
 
 class Solver:
@@ -63,15 +65,6 @@ class IOFIleNames:
         return env
 
 
-class TestResult:
-    case: TestCase
-    result: List[str]
-
-    def __init__(self, case: TestCase, result: List[str]):
-        self.case = case
-        self.result = result
-
-
 class TestRunner:
     solver: Solver
     judge: Judge
@@ -89,12 +82,17 @@ class TestRunner:
         solver_name: str = "main",
         judge_name: str = "main",
         evaluator_names: List[str] = None,
-        concurrency: Optional[int] = None,
+        concurrency: Optional[str] = None,
+        exec_num: Optional[str] = None,
     ) -> List[TestResult]:
         if evaluator_names is None:
             evaluator_names = ["main"]
         if concurrency is None:
-            concurrency = environment.project_config.test.default_concurrency
+            concurrency = int(environment.project_config.test.default_concurrency)
+        else:
+            concurrency = int(concurrency)
+        if not exec_num is None:
+            exec_num = int(exec_num)
 
         environment.project_config.test.pre_cmd.exec()
 
@@ -107,21 +105,24 @@ class TestRunner:
             raise Exception(f"test suite not found: {suite_path}")
         suite = TestSuite.parse_obj(toml.load(suite_path.joinpath("config.toml")))
 
-        result = cls(solver, judge, evaluators).run_on_suite_helper(suite, concurrency)
+        result = cls(solver, judge, evaluators).run_on_suite_helper(suite, concurrency, exec_num)
 
         scores = list(map(lambda x: int(x.result[0]), result))
-        score_sum = sum(scores)
-        score_ave = score_sum / len(scores)
-        result_with_max_score = max(result, key=lambda x: int(x.result[0]))
-        result_with_min_score = min(result, key=lambda x: int(x.result[0]))
+        # score_sum = sum(scores)
+        # score_ave = score_sum / len(scores)
+        # result_with_max_score = max(result, key=lambda x: int(x.result[0]))
+        # result_with_min_score = min(result, key=lambda x: int(x.result[0]))
 
-        logger.info(f"[test result | score] sum: {score_sum}, ave: {score_ave}")
-        logger.info(
-            f"                      max: {int(result_with_max_score.result[0])}, name: {result_with_max_score.case.file_name[:5]}..."
-        )
-        logger.info(
-            f"                      min: {int(result_with_min_score.result[0])}, name: {result_with_min_score.case.file_name[:5]}..."
-        )
+        display_results(result)
+        draw_histogram(scores)
+
+        # logger.info(f"[test result | score] sum: {score_sum}, ave: {score_ave}")
+        # logger.info(
+        #     f"                      max: {int(result_with_max_score.result[0])}, name: {result_with_max_score.case.file_name[:5]}..."
+        # )
+        # logger.info(
+        #     f"                      min: {int(result_with_min_score.result[0])}, name: {result_with_min_score.case.file_name[:5]}..."
+        # )
 
         return result
 
@@ -153,10 +154,21 @@ class TestRunner:
 
         return result
 
-    def run_on_suite_helper(self, suite: TestSuite, concurrency: int) -> List[TestResult]:
+    def run_on_suite_helper(
+        self, suite: TestSuite, concurrency: int, exec_num: Optional[int] = None
+    ) -> List[TestResult]:
+        if exec_num is None:
+            exec_num = len(suite.case_files)
+        elif len(suite.case_files) < exec_num:
+            TestSuiteGenerator.append(suite.name, exec_num - len(suite.case_files))
+
+            suite_path = expand_env_variables(environment.project_config.test.suite.path).joinpath(suite.name)
+            suite = TestSuite.parse_obj(toml.load(suite_path.joinpath("config.toml")))
+
         cases = suite.get_cases()
+        cases = cases[: exec_num if exec_num is not None else len(cases)]
         ret = []
-        with ThreadPoolExecutor(max_workers=concurrency) as executor:
+        with ThreadPoolExecutor(max_workers=min(concurrency, len(cases))) as executor:
             results = executor.map(self.run_on_case_helper, cases)
             for result in tqdm(results, total=len(cases), miniters=concurrency):
                 ret.append(result)

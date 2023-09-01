@@ -1,19 +1,17 @@
-import sys
-from ..models import Contest
-
 import json
 import os
 import shutil
+import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Optional
 
 import toml
 from colorama import Fore, Style
 from logzero import logger
-from typing import Optional
 
 from ..misc import CONST, environment, text_styling
-from ..models import ProjectConfig
+from ..models import Contest, ProjectConfig
 from .fetch_all_contest import fetch_all_atcoder_heuristic_contests_sorted_by_relevance
 from .fetch_detailed_contest import fetch_detailed_contest
 
@@ -121,7 +119,6 @@ def ask_related_contest(name: str, overseas: bool = False) -> Optional[Contest]:
     if not skipped and target_contest is None:
         logger.info("No further contest information available...")
     print()
-
 
     if target_contest:
         logger.info(
