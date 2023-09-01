@@ -7,8 +7,9 @@ Usage:
   m3 init <name> [-p | --pure]  [-v | --verbose] [--no-info]
   m3 info [--path <path>]
   m3 run <command-name>
-  m3 test gen-suite [--name <name>] [--num <case-num>] [--seed <seed>]
-  m3 test run [--name <name>] [--concurrency <concurrency>]
+  m3 gen suite [--name <name>] [--num <case-num>] [--seed <seed>]
+  m3 test suite [--name <name>] [--concurrency <concurrency>]
+  m3 test case <name>
   m3 utils gen-seeds [-n <n>] [--seed <seed>] [--upper-bound <upper-bound>] [-v | --verbose] [--no-info]
   m3 server run [--dev]
   m3 submit local
@@ -30,27 +31,25 @@ Options:
 """
 import logzero
 
+# ここで設定するのがいいのかはよくわからん（全てに適用されて欲しい気持ちはありつつ、変えたくなる時は来るのかもしれない）
 formatter = logzero.LogFormatter(
     fmt="%(color)s[%(levelname)7s %(asctime)s]%(end_color)s %(message)s",
     datefmt="%m/%d %H:%M:%S",
 )
 logzero.setup_default_logger(formatter=formatter)
 
-import os
 import subprocess
-import sys
 from typing import Union
 
 from docopt import docopt
 from fastapi import FastAPI
-from logzero import logger
 
 from .lib.misc import environment
 from .lib.models.config import ProjectConfig
 from .lib.new import generate_template
 from .lib.run import exec_command_by_name
 from .lib.test_solver import TestRunner
-from .lib.test_solver.case.case_generator import TestSuiteGenerator
+from marathon_matches_manager.lib.test_solver.case_generator import TestSuiteGenerator
 from .lib.utils import gen_seeds
 
 app = FastAPI()
@@ -84,14 +83,14 @@ def main():
         generate_template(args["<name>"])
     elif args["init"]:
         generate_template(args["<name>"], in_place=True)
+    elif args["gen"]:
+        if args["suite"]:
+            TestSuiteGenerator.generate(args["--name"], environment.global_config.test.case.generator["main"])
     elif args["test"]:
-        if args["gen-suite"]:
-            # generate_testcases(args["<name>"], args["<case-num>"], args["<seed>"])
-            TestSuiteGenerator.generate(args["--name"], environment.global_config.tester.case.generator["main"])
-            # exit(-1)
-        elif args["run"]:
-            TestRunner.run(args["--name"], concurrency=args["--concurrency"])
-            # TestExecutor.exec_by_name(args["--name"])
+        if args["suite"]:
+            TestRunner.run_on_suite(args["--name"], concurrency=args["<concurrency>"])
+        elif args["case"]:
+            TestRunner.run_on_case(args["<name>"])
     elif args["run"]:
         exec_command_by_name(args["<command-name>"])
     elif args["utils"]:

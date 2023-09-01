@@ -8,9 +8,9 @@ import toml
 from logzero import logger
 from pydantic import BaseModel
 
-from ...misc import environment
-from ...models.command import GenCaseCommand, TestCase, TestSuite
-from ...utils import expand_env_variables, remove_any_file
+from marathon_matches_manager.lib.misc import environment
+from marathon_matches_manager.lib.models.command import GenCaseCommand, TestCase, TestSuite
+from marathon_matches_manager.lib.utils import expand_env_variables, remove_any_file
 
 
 def flatten_files(paths: Iterable[Path]) -> Iterable[Path]:
@@ -24,7 +24,7 @@ def flatten_files(paths: Iterable[Path]) -> Iterable[Path]:
 class TestCaseGenerator:
     @classmethod
     def generate(cls, command: GenCaseCommand) -> List[TestCase]:
-        dest_base_path = Path(expand_env_variables(environment.global_config.tester.case.path))
+        dest_base_path = Path(expand_env_variables(environment.global_config.test.case.path))
         paths = flatten_files(command.case_paths)
 
         if not dest_base_path.exists():
@@ -72,7 +72,7 @@ class TestSuiteGenerator:
     @classmethod
     def generate(cls, suite_name: str, command: GenCaseCommand) -> TestSuite:
         cases = TestCaseGenerator.generate(command)
-        suite_path = environment.global_config.tester.suite.path.joinpath(f"{suite_name}")
+        suite_path = environment.global_config.test.suite.path.joinpath(f"{suite_name}")
         if suite_path.exists():
             logger.error(f"test suite path already exists: {suite_path}")
             raise FileExistsError

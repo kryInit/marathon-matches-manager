@@ -2,9 +2,10 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import toml
+from logzero import logger
 from tqdm import tqdm
 
 from ..misc import environment
@@ -15,9 +16,9 @@ from .case import TestCase, TestSuite
 
 class Solver:
     cmd: Command
+
     def __init__(self, cmd: Command):
         self.cmd = cmd
-
 
 
 class Judge:
@@ -62,6 +63,15 @@ class IOFIleNames:
         return env
 
 
+class TestResult:
+    case: TestCase
+    result: List[str]
+
+    def __init__(self, case: TestCase, result: List[str]):
+        self.case = case
+        self.result = result
+
+
 class TestRunner:
     solver: Solver
     judge: Judge
@@ -73,44 +83,87 @@ class TestRunner:
         self.evaluators = evaluators
 
     @classmethod
-    def run(
+    def run_on_suite(
         cls,
-        case_name: str,
+        suite_name: str,
         solver_name: str = "main",
         judge_name: str = "main",
         evaluator_names: List[str] = None,
-        concurrency: int = 1,
-    ) -> List[str]:
+        concurrency: Optional[int] = None,
+    ) -> List[TestResult]:
         if evaluator_names is None:
             evaluator_names = ["main"]
+        if concurrency is None:
+            concurrency = environment.project_config.test.default_concurrency
+
+        environment.project_config.test.pre_cmd.exec()
 
         solver = Solver(cmd=environment.project_config.solver[solver_name])
         judge = Judge(cmd=environment.project_config.judge[judge_name])
         evaluators = [Evaluator(cmd=environment.project_config.evaluator[name]) for name in evaluator_names]
 
-        suite_path = expand_env_variables(environment.project_config.tester.suite.path).joinpath(case_name)
+        suite_path = expand_env_variables(environment.project_config.test.suite.path).joinpath(suite_name)
         if not suite_path.exists():
             raise Exception(f"test suite not found: {suite_path}")
         suite = TestSuite.parse_obj(toml.load(suite_path.joinpath("config.toml")))
 
-        result = cls(solver, judge, evaluators).run_on_suite(suite)
+        result = cls(solver, judge, evaluators).run_on_suite_helper(suite, concurrency)
 
-        print(sum(map(lambda x: int(x), result)))
+        scores = list(map(lambda x: int(x.result[0]), result))
+        score_sum = sum(scores)
+        score_ave = score_sum / len(scores)
+        result_with_max_score = max(result, key=lambda x: int(x.result[0]))
+        result_with_min_score = min(result, key=lambda x: int(x.result[0]))
+
+        logger.info(f"[test result | score] sum: {score_sum}, ave: {score_ave}")
+        logger.info(
+            f"                      max: {int(result_with_max_score.result[0])}, name: {result_with_max_score.case.file_name[:5]}..."
+        )
+        logger.info(
+            f"                      min: {int(result_with_min_score.result[0])}, name: {result_with_min_score.case.file_name[:5]}..."
+        )
 
         return result
 
-    def run_on_suite(self, suite: TestSuite) -> List[str]:
-        concurrency = environment.project_config.tester.default_concurrency
+    @classmethod
+    def run_on_case(
+        cls,
+        case_path: str,
+        solver_name: str = "main",
+        judge_name: str = "main",
+        evaluator_names: List[str] = None,
+    ) -> TestResult:
+        if evaluator_names is None:
+            evaluator_names = ["main"]
+
+        environment.project_config.test.pre_cmd.exec()
+
+        solver = Solver(cmd=environment.project_config.solver[solver_name])
+        judge = Judge(cmd=environment.project_config.judge[judge_name])
+        evaluators = [Evaluator(cmd=environment.project_config.evaluator[name]) for name in evaluator_names]
+
+        case_path = Path(case_path)
+        if not case_path.exists():
+            raise Exception(f"test case not found: {case_path}")
+        case = TestCase(file_name=case_path.name)
+
+        result = cls(solver, judge, evaluators).run_on_case_helper(case)
+
+        logger.info(f"[test result | score] {int(result.result[0])}")
+
+        return result
+
+    def run_on_suite_helper(self, suite: TestSuite, concurrency: int) -> List[TestResult]:
         cases = suite.get_cases()
         ret = []
         with ThreadPoolExecutor(max_workers=concurrency) as executor:
-            results = executor.map(self.run_on_case, cases)
+            results = executor.map(self.run_on_case_helper, cases)
             for result in tqdm(results, total=len(cases), miniters=concurrency):
-                ret.extend(result)
+                ret.append(result)
         return ret
 
-    def run_on_case(self, case: TestCase) -> List[str]:
-        case_path = expand_env_variables(environment.project_config.tester.case.path).joinpath(case.file_name)
+    def run_on_case_helper(self, case: TestCase) -> TestResult:
+        case_path = expand_env_variables(environment.project_config.test.case.path).joinpath(case.file_name)
         file_names = IOFIleNames(case_path)
         env = file_names.make_env()
 
@@ -129,7 +182,8 @@ class TestRunner:
             if os.path.exists(file_name):
                 os.remove(file_name)
 
-        return result
+        return TestResult(case=case, result=result)
+
 
 """
 class TestExecutor:

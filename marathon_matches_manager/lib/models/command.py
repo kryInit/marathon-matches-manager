@@ -115,12 +115,18 @@ class TestLogConfig(BaseModel):
 
 class TestConfig(BaseModel):
     default_concurrency: int = 1
+    pre_cmd: Optional[Command]
     case: TestCaseConfig
     suite: TestSuiteConfig
     log: TestLogConfig
 
+    @root_validator(pre=True)
+    def set_command_name(cls, values: dict) -> dict:
+        # todo: コマンドに対する命名よくやるので抽象化したくね？
+        if "pre_cmd" in values and isinstance(values["pre_cmd"], dict):
+            pre_cmd = values["pre_cmd"]
+            if "name" not in pre_cmd:
+                values["pre_cmd"]["name"] = "pre_cmd"
 
-# class TestCaseManager:
-#     @classmethod
-#     def save(cls, case_path: Path) -> TestCase:
-#         environment.global_config
+        return values
+

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
 import os
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import toml
+from logzero import logger
 from pydantic import BaseModel, Field, root_validator
 
 from ..misc.const import CONST
@@ -17,14 +17,27 @@ from .contest import Contest
 
 
 class BaseConfig(BaseModel):
-    initialize: Optional[Command]
     environment: Dict[str, str] = {}
+    initialize: Optional[Command]
     commands: Dict[str, Command] = {}
-    tester: Optional[TestConfig]
+    test: Optional[TestConfig]
     solver: Dict[str, Command] = {}
     judge: Dict[str, Command] = {}
     evaluator: Dict[str, Command] = {}
     gen_case: Dict[str, GenCaseCommand] = Field(default={}, alias="gen-case")
+
+    # todo: 流石にroot_validatorでos.environという実質global変数に代入するのは良くない気がするのだが、あまり良い方法を思いつかない
+    @root_validator(pre=True)
+    def set_env_vars(cls, values: dict) -> dict:
+        if not isinstance(values, dict) or "environment" not in values or not isinstance(values["environment"], dict):
+            return values
+
+        for key, value in values["environment"].items():
+            os.environ[key] = str(value)
+        for key, _ in values["environment"].items():
+            os.environ[key] = expand_env_variables(os.environ[key])
+
+        return values
 
     @root_validator(pre=True)
     def set_command_name(cls, values: dict) -> dict:
@@ -64,12 +77,33 @@ class ProjectConfig(BaseConfig):
     # class Config:
     #     exclude = {"initialize"}
 
+    # todo: こっちも流石にroot_validatorでos.environという実質global変数に代入するのは良くない気がするのだが、あまり良い方法を思いつかない
+    @root_validator(pre=True)
+    def set_env_vars(cls, values: dict) -> dict:
+        if not isinstance(values, dict) or "contest" not in values or not isinstance(values["contest"], dict):
+            return values
+        contest = values["contest"]
+        if "environment" not in contest or not isinstance(contest["environment"], dict):
+            return values
+
+        for key, value in contest["environment"].items():
+            os.environ[key] = str(value)
+        for key, _ in contest["environment"].items():
+            os.environ[key] = expand_env_variables(os.environ[key])
+
+        return values
+
     def update_os_environment(self):
         for key, value in self.environment.items():
             os.environ[key] = value
-        for key, value in self.contest.environment.items():
-            os.environ[key] = value
+
+        if self.contest is not None:
+            for key, value in self.contest.environment.items():
+                os.environ[key] = value
+
         for key, value in self.environment.items():
             os.environ[key] = expand_env_variables(value)
-        for key, value in self.contest.environment.items():
-            os.environ[key] = expand_env_variables(value)
+
+        if self.contest is not None:
+            for key, value in self.contest.environment.items():
+                os.environ[key] = expand_env_variables(value)

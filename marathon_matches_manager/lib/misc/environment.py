@@ -27,9 +27,6 @@ class Environment(BaseModel):
 
     @classmethod
     def create(cls) -> Environment:
-        # todo: ちゃんとパースする、なければデフォルト値で埋める
-        global_config: BaseConfig = BaseConfig.get_global_config()
-        global_config.update_os_environment()
 
         current_path = Path.cwd()
 
@@ -37,20 +34,18 @@ class Environment(BaseModel):
         while current_path.parent != current_path:
             # founded config file
             if current_path.joinpath(CONST.CONFIG_FILE_NAME).exists():
-                config_file_path = current_path.joinpath(CONST.CONFIG_FILE_NAME)
-                project_config: ProjectConfig = ProjectConfig.parse_obj(toml.load(open(config_file_path)))
-
                 # todo: ここめっちゃ汚いよな・・・
                 os.environ["project_root_path"] = str(current_path)
-                global_config.update_os_environment()
-                project_config.update_os_environment()
+
+                config_file_path = current_path.joinpath(CONST.CONFIG_FILE_NAME)
+                project_config: ProjectConfig = ProjectConfig.parse_obj(toml.load(open(config_file_path)))
 
                 env = Environment(
                     in_project=True,
                     project_root_path=current_path,
                     project_config_path=current_path.joinpath(CONST.CONFIG_FILE_NAME),
                     project_config=project_config,
-                    global_config=global_config,
+                    global_config=BaseConfig.get_global_config(),
                 )
 
                 return env
@@ -63,7 +58,7 @@ class Environment(BaseModel):
             project_root_path=None,
             project_config_path=None,
             project_config=None,
-            global_config=global_config,
+            global_config=BaseConfig.get_global_config(),
         )
 
 
